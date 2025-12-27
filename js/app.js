@@ -155,17 +155,36 @@ const app = {
 
   // ====== 核心功能：跳转到角色 ======
   jumpToCharacter: function(nameKeyword) {
-    // 尝试匹配 display (日文), name (中文), 或 romaji
-    const target = this.data.characters.find(c => 
+    // 1. 首先尝试精确匹配 (匹配 display/日文, name/中文, romaji/罗马音)
+    let target = this.data.characters.find(c => 
       c.display === nameKeyword || 
       c.name === nameKeyword || 
       c.romaji === nameKeyword
     );
 
+    // 2. 如果没找到，尝试去掉前缀后匹配 (解决 "Sまりさ" -> "まりさ")
+    if (!target) {
+      // 定义常见的前缀字符
+      const prefixes = ['N', 'E', 'S', 'P', 'D', 'A'];
+      const firstChar = nameKeyword.charAt(0);
+
+      if (prefixes.includes(firstChar)) {
+        // 去掉第一个字母
+        const cleanedName = nameKeyword.substring(1);
+        
+        target = this.data.characters.find(c => 
+          c.display === cleanedName || 
+          c.name === cleanedName || 
+          c.romaji === cleanedName
+        );
+      }
+    }
+
+    // 3. 执行跳转或提示
     if (target) {
       this.showTab('characters');
       this.showCharacterDetails(target);
-      // 滚动到顶部
+      // 滚动到角色区域顶部
       document.getElementById('characters').scrollIntoView({ behavior: 'smooth' });
     } else {
       alert(`未在角色库中找到: ${nameKeyword}`);

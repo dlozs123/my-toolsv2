@@ -145,3 +145,21 @@ th {
   nav button { flex: 1 0 100%; }
   th, td { padding: 4px 6px; font-size: 12px; }
 }
+
+
+/* 在 css/style.css 中添加或修改这部分 */
+
+#characterSearchInput {
+  width: 100% !important;       /* 强制横向铺满 */
+  padding: 12px !important;      /* 增加纵向内边距，让框变高 */
+  box-sizing: border-box;       /* 确保内边距不撑大宽度 */
+  font-size: 16px;              /* 字体大小 */
+  border: 1px solid #ddd;       /* 边框 */
+  border-radius: 4px;           /* 圆角 */
+  margin-bottom: 10px;           /* 下边距 */
+}
+
+/* 确保搜索容器也是全宽的 */
+#characters .search-container {
+  width: 100%;
+}
