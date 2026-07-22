@@ -196,8 +196,18 @@ const app = {
     const mapSelect = document.getElementById('mapSelect');
     const searchInput = document.getElementById('distSearchInput');
     
+    // 提取并排序地图名称 (按レベル后的数字，从低到高)
+    const mapKeys = Object.keys(this.data.distribution);
+    mapKeys.sort((a, b) => {
+      const matchA = a.match(/レベル(\d+)/);
+      const matchB = b.match(/レベル(\d+)/);
+      const levelA = matchA ? parseInt(matchA[1], 10) : Infinity;
+      const levelB = matchB ? parseInt(matchB[1], 10) : Infinity;
+      return levelA - levelB;
+    });
+
     // 填充下拉框
-    Object.keys(this.data.distribution).forEach(map => {
+    mapKeys.forEach(map => {
       const option = document.createElement('option');
       option.value = map;
       option.textContent = map;
@@ -225,7 +235,7 @@ const app = {
         const row = document.createElement('tr');
         // 🎯 关键点：给名字添加点击事件
         row.innerHTML = `
-          <td><span class="clickable-name" onclick="app.jumpToCharacter('${entry.name}')">${entry.name}</span></td>
+          <td><a href="javascript:void(0);" class="clickable-name" onclick="app.jumpToCharacter('${entry.name}')">${entry.name}</a></td>
           <td>${entry.map}</td>
           <td>${entry.note}</td>
         `;
@@ -363,7 +373,7 @@ const app = {
         // 🎯 关键点：给人形名添加点击事件
         row.innerHTML = `
           <td>${displayName}</td>
-          <td><span class="clickable-name" onclick="app.jumpToCharacter('${b.dolls}')">${b.dolls}</span></td>
+          <td><a href="javascript:void(0);" class="clickable-name" onclick="app.jumpToCharacter('${b.dolls}')">${b.dolls}</a></td>
           <td>${b.decoration}</td>
           <td>${styleMap[b.style] || b.style}</td>
           <td>${b.level}</td>
