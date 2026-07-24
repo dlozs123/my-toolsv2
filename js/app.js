@@ -38,6 +38,28 @@ const app = {
       this.initMaps();
       this.initBosses();
 
+      // 初始化历史记录状态，拦截返回键
+      if (!history.state) {
+        history.replaceState({ tabId: 'characters', isRoot: true }, '', '#characters');
+        history.pushState({ tabId: 'characters' }, '', '#characters');
+      } else {
+        // 如果有状态，直接恢复
+        app.showTab(history.state.tabId || 'characters', true);
+      }
+
+      window.addEventListener('popstate', (e) => {
+        if (e.state && e.state.tabId) {
+          app.showTab(e.state.tabId, true);
+          if (e.state.isRoot) {
+            // 如果退回到了最底层的 root 状态，再次 push 一层，形成一个无法后退的“死循环”保护
+            history.pushState({ tabId: 'characters' }, '', '#characters');
+          }
+        } else {
+          app.showTab('characters', true);
+          history.pushState({ tabId: 'characters' }, '', '#characters');
+        }
+      });
+
     } catch (error) {
       console.error("数据加载失败，请确保使用本地服务器运行", error);
       alert("数据加载失败！请确保你正在使用本地服务器打开此页面（如 Live Server），直接双击 HTML 可能会导致跨域错误。");
@@ -45,15 +67,19 @@ const app = {
   },
 
   // 通用：切换标签
-  showTab: function(id) {
+  showTab: function(id, fromHistory = false) {
     document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    // 找到对应的按钮并高亮（简单处理，也可通过事件传参）
-    const btns = document.querySelectorAll('nav button');
-    // 这里为了简单，假设按钮顺序和ID对应，或者你在HTML传参时已经处理了视觉反馈
-    // 更严谨的做法是根据 onclick 参数找到按钮元素
-    event.target.classList.add('active');
+    
+    // 找到对应的按钮并高亮
+    const btn = document.querySelector(`nav button[onclick*="${id}"]`);
+    if (btn) btn.classList.add('active');
+
+    // 历史记录处理
+    if (!fromHistory) {
+      history.pushState({ tabId: id }, '', '#' + id);
+    }
   },
 
   // ====== 1. 角色查找模块 ======
@@ -221,7 +247,11 @@ const app = {
       tableBody.innerHTML = '';
 
       let allEntries = [];
-      if (selectedMap && this.data.distribution[selectedMap]) {
+      if (keyword) {
+        for (const map in this.data.distribution) {
+          allEntries = allEntries.concat(this.data.distribution[map].map(entry => ({ ...entry, map })));
+        }
+      } else if (selectedMap && this.data.distribution[selectedMap]) {
         allEntries = this.data.distribution[selectedMap].map(entry => ({ ...entry, map: selectedMap }));
       } else {
         for (const map in this.data.distribution) {
